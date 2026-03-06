@@ -116,7 +116,7 @@ export function ProductCard({ product, variant = "default" }: ProductCardProps) 
           <div>
             {hasDiscount && (
               <div className="text-xs text-muted-foreground line-through mb-1">
-                R$ {product.originalPrice?.toFixed(2)}
+              kwanza {product.originalPrice?.toFixed(2)} coloca o preço de kwanza 
               </div>
             )}
             <div className="text-xl font-bold text-primary">R$ {product.price.toFixed(2)}</div>
