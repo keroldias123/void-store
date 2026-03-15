@@ -86,7 +86,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
           {/* CONTEÚDO PRINCIPAL */}
           <div className="flex-1">
-            <div className="mb-8">
+            {/* <div className="mb-8">
               <h1 className="text-3xl font-bold text-gray-900">Resultados da Pesquisa</h1>
               <form method="get" className="mt-4 flex gap-2">
                 <input
@@ -101,7 +101,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                   Buscar
                 </button>
               </form>
-            </div>
+            </div> */}
 
             {!query ? (
               <p className="text-gray-500 text-center py-10">Insira um termo para começar a sua busca.</p>
