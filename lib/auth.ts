@@ -127,4 +127,11 @@ export async function getSessionUser(request: Request) {
   
     return session?.user || null
   }
-  export type Session = typeof auth.$Infer.Session
+
+export function userHasRole(session: Session | null, role: "owner" | "admin" | "member" | "reseller") {
+  if (!session || !session.user) return false
+  const userRoles = (session.user as any).roles ?? []
+  return userRoles.includes(role)
+}
+
+export type Session = typeof auth.$Infer.Session

@@ -6,7 +6,7 @@ export const verification = pgTable(
       id: uuid("id").primaryKey().defaultRandom(),
       identifier: text("identifier").notNull(),
       value: text("value").notNull(),
-      userId: text("user_id").notNull(),
+      userId: uuid("user_id").notNull(),
       expiresAt: timestamp("expires_at").notNull(),
       createdAt: timestamp("created_at").defaultNow().notNull(),
       updatedAt: timestamp("updated_at")

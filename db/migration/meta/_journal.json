@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1771581828357,
-      "tag": "0000_motionless_bucky",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1771582294848,
-      "tag": "0001_wide_magdalene",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1771582875533,
-      "tag": "0002_worried_taskmaster",
+      "when": 1773592297225,
+      "tag": "0000_stiff_genesis",
       "breakpoints": true
     }
   ]

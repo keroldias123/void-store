@@ -1,10 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
-import { Star, ShoppingCart, Heart, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import ProductCard from "@/app/(ecommerce)/components/product-card"
 
 interface Product {
   id: number
@@ -222,84 +220,6 @@ function formatPrice(price: number): string {
   return price.toLocaleString("pt-AO")
 }
 
-function ProductCard({ product }: { product: Product }) {
-  const [isLiked, setIsLiked] = useState(false)
-  const hasDiscount = product.discount && product.originalPrice
-
-  return (
-    <div className="group relative bg-card rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-      {/* Image Container */}
-      <div className="relative aspect-[3/4] overflow-hidden bg-muted">
-        <Image
-          src={product.image}
-          alt={product.title}
-          fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-        />
-        
-        {/* Discount Badge */}
-        {hasDiscount && (
-          <Badge className="absolute left-3 top-3 bg-red-500 hover:bg-red-500 text-white font-bold px-2 py-1">
-            -{product.discount}%
-          </Badge>
-        )}
-
-        {/* Wishlist Button */}
-        <button
-          onClick={() => setIsLiked(!isLiked)}
-          className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm transition-all hover:bg-white hover:scale-110"
-        >
-          <Heart
-            className={`size-5 transition-colors ${
-              isLiked ? "fill-red-500 text-red-500" : "text-gray-600"
-            }`}
-          />
-        </button>
-
-        {/* Quick Add Overlay */}
-        <div className="absolute inset-x-0 bottom-0 translate-y-full opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-          <div className="bg-gradient-to-t from-black/80 to-transparent p-4 pt-12">
-            <Button className="w-full gap-2 bg-white text-black hover:bg-white/90">
-              <ShoppingCart className="size-4" />
-              Adicionar ao Carrinho
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="p-4">
-        {/* Company */}
-        <p className="text-xs font-medium text-primary mb-1">{product.company}</p>
-
-        {/* Title */}
-        <h3 className="font-semibold text-sm text-foreground line-clamp-2 mb-2 group-hover:text-primary transition-colors">
-          {product.title}
-        </h3>
-
-        {/* Rating */}
-        <div className="flex items-center gap-1 mb-3">
-          <Star className="size-4 fill-amber-400 text-amber-400" />
-          <span className="text-sm font-medium">{product.rating}</span>
-          <span className="text-xs text-muted-foreground">({product.reviews})</span>
-        </div>
-
-        {/* Price */}
-        <div className="flex items-end gap-2">
-          <span className="text-lg font-bold text-foreground">
-            {formatPrice(product.price)} Kz
-          </span>
-          {hasDiscount && (
-            <span className="text-sm text-muted-foreground line-through">
-              {formatPrice(product.originalPrice!)} Kz
-            </span>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export function ProductsSection() {
   const [currentPage, setCurrentPage] = useState(0)
   const productsPerPage = 8
@@ -334,7 +254,7 @@ export function ProductsSection() {
               disabled={currentPage === 0}
               className="size-10 rounded-full"
             >
-              <ChevronLeft className="size-5" />
+              ‹
             </Button>
             <span className="text-sm text-muted-foreground px-2">
               {currentPage + 1} / {totalPages}
@@ -346,7 +266,7 @@ export function ProductsSection() {
               disabled={currentPage === totalPages - 1}
               className="size-10 rounded-full"
             >
-              <ChevronRight className="size-5" />
+              ›
             </Button>
           </div>
         </div>

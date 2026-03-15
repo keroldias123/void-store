@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { trpc } from "@/lib/trpc"
 import { 
   ChevronLeft, 
   ChevronRight,
@@ -44,19 +45,37 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 interface SubCategory {
+  id?: string
   name: string
-  icon: React.ReactNode
+  slug?: string
+  icon?: React.ReactNode
   href: string
   image: string
 }
 
 interface Category {
   id: string
+  slug?: string
   name: string
   icon: React.ReactNode
   image: string
   subcategories: SubCategory[]
 }
+
+const categoryIconMap = {
+  eletronicos: <Laptop className="size-5" />,
+  roupas: <Shirt className="size-5" />,
+  acessorios: <Watch className="size-5" />,
+  calcado: <Footprints className="size-5" />,
+  casa: <Home className="size-5" />,
+  cozinha: <Utensils className="size-5" />,
+  desporto: <Dumbbell className="size-5" />,
+  beleza: <Sparkles className="size-5" />,
+  bebe: <Baby className="size-5" />,
+  entretenimento: <Gamepad2 className="size-5" />,
+  automovel: <Car className="size-5" />,
+  animais: <Dog className="size-5" />,
+} as const
 
 const categories: Category[] = [
   {
@@ -244,8 +263,43 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 export function CategoriesSection() {
-  const [activeCategory, setActiveCategory] = useState(categories[0].id)
+  const categoriesQuery = trpc.categories.listWithSubcategories.useQuery()
+
+  const manualCategories = categories.map((cat) => ({
+    ...cat,
+    slug: cat.id,
+    subcategories: cat.subcategories.map((sub) => ({
+      ...sub,
+      slug: sub.href.replace("/categoria/", ""),
+    })),
+  }))
+
+  const dbCategories = categoriesQuery.data?.map((cat) => ({
+    id: cat.id,
+    name: cat.name,
+    slug: cat.slug,
+    icon:
+      categoryIconMap[cat.slug as keyof typeof categoryIconMap] ?? <Sparkles className="size-5" />,
+    image: cat.image ?? "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=500&fit=crop",
+    subcategories: cat.subcategories.map((sub) => ({
+      id: sub.id,
+      name: sub.name,
+      slug: sub.slug,
+      href: `/categoria/${sub.slug}`,
+      image: sub.image ?? "https://images.unsplash.com/photo-1587831990711-23ca6441447b?w=300&h=300&fit=crop",
+    })),
+  }))
+
+  const categoriesData = dbCategories && dbCategories.length > 0 ? dbCategories : manualCategories
+
+  const [activeCategory, setActiveCategory] = useState("")
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!activeCategory && categoriesData.length > 0) {
+      setActiveCategory(categoriesData[0].id)
+    }
+  }, [categoriesData, activeCategory])
 
   const scroll = (direction: "left" | "right") => {
     if (scrollContainerRef.current) {
@@ -257,7 +311,7 @@ export function CategoriesSection() {
     }
   }
 
-  const activeCategoryData = categories.find(c => c.id === activeCategory)
+  const activeCategoryData = categoriesData.find(c => c.id === activeCategory)
   const shuffledSubcategories = activeCategoryData 
     ? shuffleArray(activeCategoryData.subcategories)
     : []
@@ -297,7 +351,7 @@ export function CategoriesSection() {
           className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
-          {categories.map((category) => (
+          {categoriesData.map((category) => (
             <button
               key={category.id}
               onClick={() => setActiveCategory(category.id)}
@@ -345,7 +399,7 @@ export function CategoriesSection() {
               {activeCategoryData?.name}
             </h3>
             <Link 
-              href={`/categoria/${activeCategory}`}
+              href={`/categoria/${activeCategoryData?.slug ?? ""}`}
               className="text-sm font-medium text-primary hover:underline flex items-center gap-1"
             >
               Ver todos

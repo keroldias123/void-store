@@ -1,1 +1,0 @@
-ALTER TABLE "organization" ADD COLUMN "owner_id" text;

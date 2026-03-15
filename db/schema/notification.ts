@@ -6,7 +6,7 @@ export const notification = pgTable(
   "notification",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    userId: text("user_id")
+    userId: uuid("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
     type: text("type").notNull(),

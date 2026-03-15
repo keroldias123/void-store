@@ -1,0 +1,7 @@
+import mockData from '@/mock/mock-data.json'
+
+export async function getMockDashboardData() {
+  // simula latência de rede
+  await new Promise((resolve) => setTimeout(resolve, 700))
+  return mockData
+}

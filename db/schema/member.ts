@@ -10,7 +10,7 @@ export const member = pgTable(
       organizationId: uuid("organization_id")
         .notNull()
         .references(() => organization.id, { onDelete: "cascade" }),
-      userId: text("user_id")
+      userId: uuid("user_id")
         .notNull()
         .references(() => user.id, { onDelete: "cascade" }),
       role: text("role").default("member").notNull(),

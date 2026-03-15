@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, type FormEvent } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -29,6 +30,7 @@ import {
   MapPin,
 } from "lucide-react"
 import { CategoryNav } from "@/components/category-nav"
+import { signIn } from "@/lib/auth-client"
 
 const mobileMenuCategories = [
   { name: "Início", icon: Home, href: "#" },
@@ -51,9 +53,25 @@ const productCategories = [
 ]
 
 export function Navbar() {
+  const router = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
 
+  const handleSearch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const query = searchTerm.trim()
+    if (!query) return
+    setSearchOpen(false)
+    router.push(`/productos/search?q=${encodeURIComponent(query)}`)
+  }
+
+  const handleSignIn = async () => {
+    await signIn.social({
+      provider: "google",
+      callbackURL: "/", // Opcional: para onde redirecionar após login
+    })
+  }
   return (
     <div className="bg-background">
       {/* Mobile Menu - Sheet */}
@@ -74,14 +92,16 @@ export function Navbar() {
 
           {/* Mobile Search */}
           <div className="px-4 py-3 border-b">
-            <div className="relative">
+            <form onSubmit={handleSearch} className="relative">
               <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 type="search"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
                 placeholder="Pesquisar produtos..."
                 className="pl-10 bg-muted/50"
               />
-            </div>
+            </form>
           </div>
 
           {/* Navigation Links */}
@@ -160,15 +180,17 @@ export function Navbar() {
       {searchOpen && (
         <div className="fixed inset-0 z-50 bg-background lg:hidden">
           <div className="flex items-center gap-2 border-b px-4 py-3">
-            <div className="relative flex-1">
+            <form onSubmit={handleSearch} className="relative flex-1">
               <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 type="search"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
                 placeholder="Pesquisar produtos..."
                 className="pl-10"
                 autoFocus
               />
-            </div>
+            </form>
             <Button
               variant="ghost"
               size="sm"
@@ -237,14 +259,16 @@ export function Navbar() {
 
               {/* Desktop Search */}
               <div className="hidden lg:flex lg:flex-1 lg:justify-center lg:px-8">
-                <div className="relative w-full max-w-lg">
+                <form onSubmit={handleSearch} className="relative w-full max-w-lg">
                   <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     type="search"
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
                     placeholder="Pesquisar produtos..."
                     className="pl-10 pr-4 bg-muted/50 border-muted focus:bg-background"
                   />
-                </div>
+                </form>
               </div>
 
               {/* Actions */}
@@ -286,7 +310,7 @@ export function Navbar() {
 
                 {/* User - Desktop */}
                 <div className="hidden lg:flex items-center gap-2 ml-2 pl-2 border-l border-border">
-                  <Button variant="ghost" size="sm" className="gap-2" asChild>
+                  <Button variant="ghost" onClick={()=>handleSignIn()} size="sm" className="gap-2" asChild>
                     <a href="#">
                       <User className="size-4" />
                       <span>Entrar</span>

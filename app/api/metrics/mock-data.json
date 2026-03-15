@@ -1,0 +1,34 @@
+{
+    "monthRevenue": {
+      "receipt": 6250000,
+      "diffFromLastMonth": 15
+    },
+    "monthOrdersAmount": {
+      "amount": 480,
+      "diffFromLastMonth": 12
+    },
+    "dayOrdersAmount": {
+      "amount": 42,
+      "diffFromYesterday": -5
+    },
+    "monthCanceledOrdersAmount": {
+      "amount": 8,
+      "diffFromLastMonth": -20
+    },
+    "dailyRevenueInPeriod": [
+      { "date": "01/03/2026", "receipt": 1500 },
+      { "date": "02/03/2026", "receipt": 2400 },
+      { "date": "03/03/2026", "receipt": 1800 },
+      { "date": "04/03/2026", "receipt": 3000 },
+      { "date": "05/03/2026", "receipt": 2800 },
+      { "date": "06/03/2026", "receipt": 3200 },
+      { "date": "07/03/2026", "receipt": 4000 }
+    ],
+    "popularProducts": [
+      { "product": "Smartphone XYZ", "amount": 120 },
+      { "product": "Notebook Pro 15\"", "amount": 95 },
+      { "product": "Camiseta Casual", "amount": 80 },
+      { "product": "Fone de Ouvido Bluetooth", "amount": 70 },
+      { "product": "Smartwatch Série 5", "amount": 60 }
+    ]
+  }

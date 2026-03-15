@@ -27,7 +27,7 @@ export const joinOrgSchema = z.object({
 export const inviteMemberSchema = z.object({
   orgId: z.string().min(1, "Organization ID is required"),
   email: z.string().email("Invalid email address"),
-  role: z.enum(["owner", "member"]).default("member"),
+  role: z.enum(["owner", "admin", "member", "reseller"]).default("member"),
 })
 
 // Outline schemas

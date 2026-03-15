@@ -1,3 +1,14 @@
+import { Home, Flame, Tag, Eye, Sparkles, ListTodo } from 'lucide-react'
+
+const footerNav = [
+  { name: 'Inicio', icon: Home, href: '/' },
+  { name: 'Categoria', icon: ListTodo, href: '/categorias' },
+  { name: 'Productos populares', icon: Flame, href: '/productos/populares' },
+  { name: 'Descontos', icon: Tag, href: '/productos/descontos' },
+  { name: 'Vistos', icon: Eye, href: '/productos/vistos' },
+  { name: 'Novidades', icon: Sparkles, href: '/productos/novidades' },
+]
+
 export const Footer = () => {
     return (
         <footer className="mt-16 border-t border-border bg-muted/30">
@@ -15,12 +26,19 @@ export const Footer = () => {
               </p>
             </div>
             <div>
-              <h3 className="font-semibold text-foreground">Categorias</h3>
+              <h3 className="font-semibold text-foreground">Navegação</h3>
               <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground">Eletrónicos</a></li>
-                <li><a href="#" className="hover:text-foreground">Roupas</a></li>
-                <li><a href="#" className="hover:text-foreground">Casa & Decoração</a></li>
-                <li><a href="#" className="hover:text-foreground">Desporto</a></li>
+                {footerNav.map((cat) => {
+                  const Icon = cat.icon
+                  return (
+                    <li key={cat.name} className="flex items-center gap-2">
+                      <Icon className="size-4" />
+                      <a href={cat.href} className="hover:text-foreground">
+                        {cat.name}
+                      </a>
+                    </li>
+                  )
+                })}
               </ul>
             </div>
             <div>
