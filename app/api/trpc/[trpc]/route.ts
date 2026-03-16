@@ -1,30 +1,14 @@
-import { fetchRequestHandler } from "@trpc/server/adapters/fetch"
-import { appRouter } from "@/src/server/routers/_app"
-import { createContext } from "@/src/server/trpc"
-
-export async function GET(request: Request) {
-  return fetchRequestHandler({
+// app/api/trpc/[trpc]/route.ts
+import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
+import { appRouter } from "@/src/server/routers/_app";
+import { createContext } from "@/src/server/trpc";
+import {  } from "@/app/api/trpc/[trpc]/route" // ✅ IMPORT CORRETO - sempre '@/trpc/react';
+const handler = (req: Request) =>
+  fetchRequestHandler({
     endpoint: "/api/trpc",
-    req: request,
+    req,
     router: appRouter,
-    createContext: async () => createContext({ req: request }),
-  })
-}
+    createContext: () => createContext({ req }),
+  });
 
-export async function POST(request: Request) {
-  return fetchRequestHandler({
-    endpoint: "/api/trpc",
-    req: request,
-    router: appRouter,
-    createContext: async () => createContext({ req: request }),
-  })
-}
-
-export async function OPTIONS(request: Request) {
-  return fetchRequestHandler({
-    endpoint: "/api/trpc",
-    req: request,
-    router: appRouter,
-    createContext: async () => createContext({ req: request }),
-  })
-}
+export { handler as GET, handler as POST, handler as OPTIONS };

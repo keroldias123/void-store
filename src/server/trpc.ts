@@ -18,7 +18,9 @@ const t = initTRPC.context<Context>().create({
   },
 })
 
+// ✅ EXPORTAÇÃO CORRIGIDA: Adicione o createTRPCRouter aqui
 export const router = t.router
+export const createTRPCRouter = t.router 
 export const publicProcedure = t.procedure
 
 export const protectedProcedure = t.procedure.use(({ ctx, next }) => {

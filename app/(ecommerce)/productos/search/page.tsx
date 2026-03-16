@@ -1,186 +1,169 @@
-import Link from "next/link"
-import { db } from "@/db"
-import { product, category, subcategory } from "@/db/schema/schema"
-import { or, like, desc, inArray, sql } from "drizzle-orm"
-import ProductCard from "@/app/(ecommerce)/components/product-card"
+'use client'
 
-interface SearchPageProps {
-  searchParams: { q?: string; cat?: string }
-}
+import { useSearchParams } from 'next/navigation'
+import { api } from '@/src/trpc/react' // ✅ Import padrão recomendado
+import Link from 'next/link'
+import ProductCard from '@/app/(ecommerce)/components/product-card'
+import { Loader2, Search, X, PackageOpen, Home } from 'lucide-react'
 
-export default async function SearchPage({ searchParams }: SearchPageProps) {
-  const query = (searchParams.q || "").trim()
-  const activeCat = searchParams.cat || ""
-
-  // 1. ✅ Buscar PRODUTOS primeiro (para pegar categorias relevantes)
-  const products = query
-    ? await db.query.product.findMany({
-        where: (fields, { and, or, like, eq }) =>
-          and(
-            or(
-              like(fields.title, `%${query}%`),
-              like(fields.description, `%${query}%`),
-              like(fields.category, `%${query}%`)
-            ),
-            activeCat ? eq(fields.category, activeCat) : undefined // ✅ Corrigido
-          ),
-        orderBy: (fields) => desc(fields.createdAt),
-        columns: {
-          id: true,
-          title: true,
-          description: true,
-          imageUrl: true,
-          category: true,
-          price: true,
-          originalPrice: true,
-          slug: true,
-          reviews: true,
-        }
-      })
-    : []
-
-  // 2. ✅ Pegar CATEGORIAS ÚNICAS dos produtos encontrados
-  const productCategories = [...new Set(products.map(p => p.category).filter(Boolean))]
+export default function SearchPage() {
+  const searchParams = useSearchParams()
   
-  // 3. ✅ Buscar apenas CATEGORIAS e SUBCATEGORIAS relevantes
-  const relevantCategories = productCategories.length > 0 
-    ? await db.query.category.findMany({
-        where: (fields, { inArray }) => inArray(fields.name, productCategories),
-        with: {
-          subcategories: {
-            where: (subFields, { inArray }) => inArray(subFields.name, productCategories)
-          }
-        },
-      })
-    : await db.query.category.findMany({
-        with: { subcategories: true },
-        limit: 5 // ✅ Limite se não há resultados
-      })
+  // Decodifica a query para exibição limpa na UI
+  const rawQuery = searchParams.get('q') || ''
+  const query = decodeURIComponent(rawQuery).trim()
+  const activeCat = searchParams.get('cat') || ''
+
+  // ✅ tRPC Query com proteção contra strings vazias
+  const { 
+    data: searchData, 
+    isLoading, 
+    isError,
+    error 
+  } = api.categories.searchRouter.useQuery(
+    { 
+      query: query || undefined, 
+      category: activeCat || undefined 
+    }, 
+    {
+      enabled: query.length > 0, // Evita chamadas inúteis
+      staleTime: 1000 * 60 * 5, // 5 minutos
+      refetchOnWindowFocus: false
+    }
+  )
+
+  const products = searchData?.products ?? []
+  const relevantCategories = searchData?.categories ?? []
+  const total = searchData?.total ?? 0
+
+  // 1. Estado: Erro
+  if (isError) {
+    return (
+      <main className="min-h-[80vh] flex items-center justify-center p-6">
+        <div className="text-center space-y-4">
+          <div className="bg-red-50 p-4 rounded-full inline-block">
+            <X className="w-12 h-12 text-red-500" />
+          </div>
+          <h2 className="text-2xl font-black text-gray-900">Erro na busca</h2>
+          <p className="text-gray-500 max-w-xs">{error?.message || "Ocorreu um problema inesperado."}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-8 py-3 bg-gray-900 text-white font-bold rounded-2xl hover:bg-gray-800 transition-all"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      </main>
+    )
+  }
+
+  // 2. Estado: Busca Vazia (Ainda não digitou)
+  if (!query) {
+    return (
+      <main className="min-h-[80vh] flex flex-col items-center justify-center p-6 text-center">
+        <Search className="w-24 h-24 text-gray-200 mb-8" />
+        <h1 className="text-4xl font-black text-gray-900 mb-4">O que você procura?</h1>
+        <p className="text-gray-500 text-lg max-w-md">
+          Digite o nome de um produto ou categoria para começar.
+        </p>
+      </main>
+    )
+  }
+
+  // 3. Estado: Carregando
+  if (isLoading) {
+    return (
+      <main className="min-h-[80vh] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-12 h-12 animate-spin text-gray-900" />
+          <p className="font-bold text-gray-600">Buscando as melhores opções...</p>
+        </div>
+      </main>
+    )
+  }
 
   return (
-    <main className="bg-white min-h-screen">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-        <div className="flex flex-col lg:flex-row gap-8">
+    <>
+      <title>&quot;{query}&quot; | Sua Loja</title>
+      <main className="bg-slate-50/50 min-h-screen pb-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-12">
           
-          {/* ASIDE - MENU LATERAL RELEVANTE */}
-          <aside className="w-full lg:w-64 flex-shrink-0">
-            <div className="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
-              <h2 className="text-lg font-bold text-gray-900 mb-1">Filtros Relevantes</h2>
-              <p className="text-sm text-gray-600">
-                {products.length} {products.length === 1 ? 'resultado' : 'resultados'} para &quot;<strong>{query}</strong>&quot;
-              </p>
-            </div>
+          <div className="flex flex-col lg:flex-row gap-10">
+            
+            {/* Sidebar Otimizada */}
+            <aside className="w-full lg:w-72 shrink-0">
+              <div className="lg:sticky lg:top-24 space-y-6">
+                
+                {/* Stats Card */}
+                <div className="p-6 rounded-[2rem] bg-white shadow-sm border border-slate-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="flex h-3 w-3 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-3xl font-black text-slate-900">{total}</span>
+                    <span className="text-slate-500 font-medium">itens</span>
+                  </div>
+                  <p className="text-sm text-slate-600 mb-4 truncate">para &quot;{query}&quot;</p>
+                  
+                  {activeCat && (
+                    <Link
+                      href={`/search?q=${encodeURIComponent(query)}`}
+                      className="flex items-center justify-center gap-2 w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all"
+                    >
+                      <X className="w-3 h-3" /> REMOVER FILTROS
+                    </Link>
+                  )}
+                </div>
 
-            {relevantCategories.length > 0 ? (
-              <nav>
-                <ul className="space-y-2">
+                {/* Categories Filter */}
+                <div className="space-y-3">
+                  <h3 className="px-2 text-xs font-black text-slate-400 uppercase tracking-widest">Filtrar por Categoria</h3>
                   {relevantCategories.map((cat) => (
-                    <li key={cat.id} className="border-b border-gray-100 pb-2 last:border-b-0">
-                      <details className="group" defaultOpen={productCategories.length <= 3}>
-                        <summary className="flex cursor-pointer items-center justify-between py-3 text-sm font-semibold text-gray-800 hover:text-bronze-600">
-                          <span>{cat.name} ({cat.subcategories?.length || 0})</span>
-                          <span className="transition group-open:rotate-180">
-                            <svg fill="none" height="20" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                              <path d="M6 9l6 6 6-6"></path>
-                            </svg>
-                          </span>
-                        </summary>
-                        
-                        <div className="mt-3 ml-4 space-y-1">
-                          {/* Categoria principal */}
-                          <Link 
-                            href={`/search?q=${query}&cat=${cat.slug}`}
-                            className={`block text-sm py-1 px-2 rounded-lg transition-all ${
-                              activeCat === cat.slug 
-                                ? 'bg-bronze-500 text-white font-bold shadow-md' 
-                                : 'text-gray-700 hover:bg-gray-100 hover:text-bronze-600'
-                            }`}
-                          >
-                            📦 Ver tudo ({cat._count?.subcategories || 0})
-                          </Link>
-                          
-                          {/* Subcategorias relevantes */}
-                          {cat.subcategories?.map((sub) => (
-                            <Link
-                              key={sub.id}
-                              href={`/search?q=${query}&cat=${sub.slug}`}
-                              className={`block text-sm py-1 px-3 rounded-lg transition-all pl-2 border-l-2 ${
-                                activeCat === sub.slug 
-                                  ? 'bg-bronze-50 border-bronze-400 text-bronze-800 font-semibold shadow-sm' 
-                                  : 'text-gray-600 hover:bg-gray-100 hover:text-bronze-600 border-gray-200'
-                              }`}
-                            >
-                              {sub.name}
-                            </Link>
-                          ))}
-                        </div>
-                      </details>
-                    </li>
+                    <div key={cat.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                      <Link
+                        href={`/search?q=${encodeURIComponent(query)}&cat=${cat.slug}`}
+                        className={`flex items-center justify-between p-4 transition-all ${
+                          activeCat === cat.slug ? 'bg-slate-900 text-white' : 'hover:bg-slate-50 text-slate-900'
+                        }`}
+                      >
+                        <span className="font-bold truncate">{cat.name}</span>
+                        <span className={`text-[10px] px-2 py-1 rounded-lg ${
+                          activeCat === cat.slug ? 'bg-white/20' : 'bg-slate-100 text-slate-500'
+                        }`}>
+                          {cat.subcategories?.length || 0}
+                        </span>
+                      </Link>
+                    </div>
                   ))}
-                </ul>
-              </nav>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <p>Nenhuma categoria encontrada</p>
-                <Link href={`/search?q=${query}`} className="text-sm underline mt-2 block hover:text-bronze-600">
-                  Ver todos os resultados
-                </Link>
+                </div>
               </div>
-            )}
-          </aside>
+            </aside>
 
-          {/* CONTEÚDO PRINCIPAL */}
-          <div className="flex-1 min-w-0">
-            {query ? (
-              products.length > 0 ? (
-                <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-                  {products.map((prod) => (
-                    <ProductCard
-                      key={prod.id}
-                      product={{
-                        id: prod.id,
-                        slug: prod.slug,
-                        title: prod.title,
-                        image: prod.imageUrl || "/placeholder.png",
-                        category: prod.category,
-                        company: prod.seller?.name || "Loja", // ✅ Revendedor
-                        price: prod.price,
-                        originalPrice: prod.originalPrice,
-                        rating: prod.rating || 4.5,
-                        reviews: prod.reviews || 0,
-                        description: prod.description,
-                      }}
-                    />
+            {/* Results Area */}
+            <div className="flex-1">
+              {products.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {products.map((p) => (
+                    <ProductCard key={p.id} product={p} />
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-20">
-                  <div className="mx-auto w-24 h-24 bg-gray-100 rounded-2xl flex items-center justify-center mb-6">
-                    <span className="text-3xl">🔍</span>
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Nenhum resultado encontrado</h3>
-                  <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                    Não encontramos &quot;<strong>{query}</strong>&quot;. Tente outros termos.
+                <div className="bg-white rounded-[3rem] p-12 text-center border border-slate-200 shadow-sm">
+                  <PackageOpen className="w-20 h-20 text-slate-200 mx-auto mb-6" />
+                  <h2 className="text-3xl font-black text-slate-900 mb-4">Nenhum resultado</h2>
+                  <p className="text-slate-500 mb-10 max-w-sm mx-auto">
+                    Não encontramos correspondências exatas para <strong>{query}</strong>. Tente termos mais genéricos.
                   </p>
-                  <Link 
-                    href={`/search?q=${query}`} 
-                    className="inline-flex items-center gap-2 bg-bronze-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-bronze-600 shadow-lg transition-all"
-                  >
-                    Ver todos os produtos
-                  </Link>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <Link href="/" className="flex items-center justify-center gap-2 px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold hover:shadow-xl transition-all">
+                      <Home className="w-5 h-5" /> Início
+                    </Link>
+                  </div>
                 </div>
-              )
-            ) : (
-              <div className="text-center py-20">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">O que você está procurando?</h2>
-                <p className="text-xl text-gray-600 mb-8 max-w-lg mx-auto">
-                  Digite o nome do produto, categoria ou marca para encontrar rapidamente.
-                </p>
-              </div>
-            )}
+              )}
+            </div>
+
           </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </>
   )
 }
