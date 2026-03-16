@@ -5,7 +5,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Star, Heart } from "lucide-react"
+import { Star, Heart, ShoppingCart } from "lucide-react"
 
 type ProductCardProps = {
   product: {
@@ -75,64 +75,96 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="absolute inset-x-0 bottom-0 translate-y-full opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 z-10">
           <div className="bg-gradient-to-t from-black/95 to-transparent p-4 pt-10">
             <Button className="w-full h-11 bg-white text-black hover:bg-white/90 shadow-lg font-semibold text-sm">
-              🛒 Adicionar ao Carrinho
+              <ShoppingCart className="h-5 w-5 mr-2" />
+              Adicionar ao Carrinho
             </Button>
           </div>
         </div>
       </div>
 
-      {/* ✅ Conteúdo sempre visível */}
-      <div className="p-5"> 
-        <div className="mb-3">
-          <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide">
-            {product.company || product.category || "Loja"}
-          </p>
-        </div>
-        
-        <h3 className="font-bold text-lg leading-tight text-gray-900 mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors pr-1">
-          {product.title}
-        </h3>
+   {/* ✅ Conteúdo PROFISSIONAL - Preto & Bronze */}
+<div className="p-6 bg-gradient-to-b from-gray-50 to-white border-t border-gray-100">
+  
+  {/* 1️⃣ REVENDEDOR/ORGANIZAÇÃO */}
+  <div className="mb-4 flex items-center gap-2 pb-3 border-b border-gray-100">
+    <div className="w-8 h-8 bg-gradient-to-br from-bronze-500 to-amber-700 rounded-xl flex items-center justify-center shadow-sm">
+      <span className="text-white text-sm font-bold">🏪</span>
+    </div>
+    <div>
+      <p className="text-xs font-bold text-gray-800 uppercase tracking-wider">
+        {product.company || "Loja Oficial"}
+      </p>
+      <p className="text-xs text-gray-500 font-medium">
+        {product.category || "Categoria"}
+      </p>
+    </div>
+  </div>
 
-        {/* ✅ Rating sempre visível */}
-        <div className="flex items-center gap-2 mb-4 pb-1 border-b border-gray-100">
-          <div className="flex items-center gap-1">
-            {Array.from({ length: 5 }, (_, i) => (
-              <Star
-                key={i}
-                className={`h-4 w-4 ${
-                  i < Math.floor(rating) || (i === Math.floor(rating) && rating % 1 >= 0.5)
-                    ? 'text-yellow-400 fill-yellow-400'
-                    : 'text-gray-300'
-                }`}
-              />
-            ))}
-          </div>
-          <span className="text-xs text-gray-500">({product.reviews ?? 0})</span>
-        </div>
+  {/* 2️⃣ TÍTULO PRINCIPAL */}
+  <h3 className="font-black text-xl leading-tight text-gray-900 mb-4 line-clamp-2 hover:text-bronze-600 transition-all duration-200 pr-1 group-hover:pr-2">
+    {product.title}
+  </h3>
 
-        {/* ✅ Preço sempre visível e destacado */}
-        <div className="flex items-baseline gap-3 pt-2">
-          <div>
-            <span className="text-2xl font-black text-gray-900 block">
-              {formatPrice(product.price)}
-            </span>
-            <span className="text-xs text-gray-500 font-medium">Kz</span>
-          </div>
-          
-          {hasDiscount && (
-            <div className="text-sm text-gray-400 font-normal line-through">
-              {formatPrice(product.originalPrice!)} Kz
-            </div>
-          )}
-        </div>
-
-        {/* ✅ Descrição se existir */}
-        {product.description && (
-          <p className="text-xs text-gray-600 mt-2 line-clamp-2 leading-relaxed">
-            {product.description}
-          </p>
-        )}
+  {/* 3️⃣ RATING & REVIEW */}
+  <div className="flex items-center justify-between mb-5 py-2">
+    <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 bg-bronze-50 p-2 rounded-lg border border-bronze-100">
+        {Array.from({ length: 5 }, (_, i) => (
+          <Star
+            key={i}
+            className={`h-4 w-4 transition-all ${
+              i < Math.floor(rating) || (i === Math.floor(rating) && rating % 1 >= 0.5)
+                ? 'text-bronze-500 fill-bronze-500 drop-shadow-sm'
+                : 'text-gray-300'
+            }`}
+          />
+        ))}
       </div>
+      <span className="text-sm font-bold text-gray-700 bg-white px-2 py-1 rounded-full shadow-sm">
+        {rating.toFixed(1)}
+      </span>
+    </div>
+    
+    <span className="text-xs text-gray-500 font-semibold bg-gray-100 px-3 py-1 rounded-full">
+      {product.reviews ?? 0} vendas
+    </span>
+  </div>
+
+  {/* 4️⃣ PREÇO DESTACADO */}
+  <div className="flex items-end justify-between gap-4 pb-4 mb-4 border-b border-gray-100">
+    <div className="flex flex-col">
+      <span className="text-3xl font-black text-gray-900 leading-none mb-1">
+        {formatPrice(product.price)}
+      </span>
+      <span className="text-xs font-bold text-bronze-600 uppercase tracking-wider bg-bronze-50 px-2 py-0.5 rounded-full w-fit">
+        Kz
+      </span>
+    </div>
+    
+    {hasDiscount && (
+      <div className="text-lg font-semibold text-gray-400 line-through bg-gray-50 px-3 py-1 rounded-lg">
+        {formatPrice(product.originalPrice!)}
+      </div>
+    )}
+  </div>
+
+  {/* 5️⃣ DESCRIÇÃO BREVE */}
+  {product.description && (
+    <div className="mb-4 p-3 bg-gray-50 rounded-xl border border-gray-200">
+      <p className="text-sm text-gray-700 leading-relaxed line-clamp-2">
+        {product.description}
+      </p>
+    </div>
+  )}
+
+  {/* 6️⃣ BADGE DE STATUS */}
+  <div className="flex items-center gap-2 pt-2">
+    <div className="px-3 py-1 bg-gradient-to-r from-bronze-500 to-amber-600 text-white text-xs font-bold rounded-full shadow-md">
+      Em estoque
+    </div>
+    <span className="text-xs text-gray-500 font-medium">• Frete grátis</span>
+  </div>
+</div>
     </Link>
   )
 }
